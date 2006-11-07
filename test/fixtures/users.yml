@@ -1,0 +1,8 @@
+bob:
+  id: 1
+  login: bob
+  crypted_password: "0XlmUuNpE2k=\n"
+  type: SymmetricUser
+fred:
+  id: 2
+  login: fred
