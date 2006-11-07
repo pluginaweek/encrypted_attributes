@@ -1,22 +1,41 @@
 class User < ActiveRecord::Base
   validates_presence_of :login
+end
+
+class SHAUser < User
+  encrypts :password
+end
+
+class ConfirmedSHAUser < SHAUser
+  with_options(:if => :password_required?) do |klass|
+    validates_presence_of     :password,
+                              :crypted_password
+    validates_length_of       :password,
+                                :in => 4..40
+    validates_confirmation_of :password
+  end
+  
+  def password_required?
+    crypted_password.blank? || !password.blank?
+  end
+end
+
+class SHAUserWithSalt < User
+  encrypts :password, :salt => true
   
   def create_salt
     "#{login}_salt"
   end
-  
-  def self.validates_password
-    validates_presence_of :crypted_password
-    validates_presence_of :password, :on => :create
-    validates_length_of :password, :in => 4..40
-  end
 end
 
-class ConfirmedUser < User
-  validates_password
-  validates_confirmation_of :password
+class SHAUserWithCustomCryptedAttr < User
+  encrypts :password, :crypted_name => 'protected_password'
 end
 
-class UnconfirmedUser < User
-  validates_password
+class AsymmetricUser < User
+  encrypts :password, :mode => :asymmetrically
+end
+
+class SymmetricUser < User
+  encrypts :password, :mode => :symmetrically
 end

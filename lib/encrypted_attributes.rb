@@ -9,6 +9,21 @@ module PluginAWeek #:nodoc:
     end
     
     module MacroMethods
+      # Encrypts the specified attribute using the mode given in the configuration
+      # options or, by default, SHA encryption.
+      # 
+      # Configuration options:
+      # * <tt>mode</tt> - The mode of encryption to use
+      # * <tt>crypted_name</tt> - The name of the attribute to store the crypted value in.  By default, this is "crypted_#{attr_name}"
+      # 
+      # For additional configuration options, see the individual encryption
+      # class.
+      # 
+      def encrypts(attr_name, options = {})
+        mode = options.delete(:mode) || :sha
+        send("encrypts_#{mode}", attr_name, options)
+      end
+      
       # Encrypts the specified attribute using an SHA algorithm.
       # 
       # Configuration options:
@@ -17,16 +32,15 @@ module PluginAWeek #:nodoc:
       # For additional configuration options, see the individual encryption
       # class.
       # 
-      def encrypts(attr_name, options = {})
+      def encrypts_sha(attr_name, options = {})
         encrypts_with(attr_name, SHAEncryptedString, options)
       end
-      alias_method :encrypts_sha, :encrypts
       
       # Encrypts the specified attribute using an asymmetric algorithm.  For
       # additional configuration options, see the individual encryption class.
       # 
       def encrypts_asymmetrically(attr_name, options = {})
-        encrypts_with(attr_names, AsymmetricallyEncryptedString, options)
+        encrypts_with(attr_name, AsymmetricallyEncryptedString, options)
       end
       alias_method :encrypts_asmmetric, :encrypts_asymmetrically
       
@@ -34,7 +48,7 @@ module PluginAWeek #:nodoc:
       # additional configuration options, see the individual encryption class.
       # 
       def encrypts_symmetrically(attr_name, options = {})
-        encrypts_with(attr_names, SymmetricallyEncryptedString, options)
+        encrypts_with(attr_name, SymmetricallyEncryptedString, options)
       end
       alias_method :encrypts_symmetric, :encrypts_symmetrically
       
@@ -76,13 +90,14 @@ module PluginAWeek #:nodoc:
         # Set the value immediately before validation takes place
         before_validation do |model|
           value = model.send(attr_name)
-          return if value.blank?
           
-          unless value.is_a?(EncryptedString)
-            value = model.send(:create_encrypted_string, klass, value, options)
+          if !value.blank?
+            unless value.is_a?(EncryptedString)
+              value = model.send(:create_encrypted_string, klass, value, options)
+            end
+            
+            model.send("#{crypted_attr_name}=", value)
           end
-          
-          model.send("#{crypted_attr_name}=", value)
         end
         
         # After saving, be sure to reset the virtual attribute value.  This also
