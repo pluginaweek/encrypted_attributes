@@ -1,4 +1,24 @@
-EncryptedAttributes
-===================
+= encrypted_attributes
 
-Description goes here
+encrypted_attributes .
+
+== Resources
+
+Wiki
+
+* http://wiki.pluginaweek.org/Encrypted_attributes
+
+Announcement
+
+* http://www.pluginaweek.org/
+
+Source
+
+* http://svn.pluginaweek.org/trunk/plugins/active_record/miscellaneous/encrypted_attributes
+
+Development
+
+* http://dev.pluginaweek.org/browser/trunk/plugins/active_record/miscellaneous/encrypted_attributes
+
+== Description
+
