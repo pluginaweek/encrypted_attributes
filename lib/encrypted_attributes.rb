@@ -1,6 +1,5 @@
 require 'encrypted_strings'
-
-require File.join('encrypted_attributes', 'sha_encrypted_string')
+require 'encrypted_attributes/extensions/sha_encrypted_string'
 
 module PluginAWeek #:nodoc:
   module EncryptedAttributes
@@ -18,7 +17,6 @@ module PluginAWeek #:nodoc:
       # 
       # For additional configuration options, see the individual encryption
       # class.
-      # 
       def encrypts(attr_name, options = {})
         mode = options.delete(:mode) || :sha
         send("encrypts_#{mode}", attr_name, options)
@@ -31,14 +29,12 @@ module PluginAWeek #:nodoc:
       # 
       # For additional configuration options, see the individual encryption
       # class.
-      # 
       def encrypts_sha(attr_name, options = {})
         encrypts_with(attr_name, SHAEncryptedString, options)
       end
       
       # Encrypts the specified attribute using an asymmetric algorithm.  For
       # additional configuration options, see the individual encryption class.
-      # 
       def encrypts_asymmetrically(attr_name, options = {})
         encrypts_with(attr_name, AsymmetricallyEncryptedString, options)
       end
@@ -46,7 +42,6 @@ module PluginAWeek #:nodoc:
       
       # Encrypts the specified attribute using a symmetric algorithm.  For
       # additional configuration options, see the individual encryption class.
-      # 
       def encrypts_symmetrically(attr_name, options = {})
         encrypts_with(attr_name, SymmetricallyEncryptedString, options)
       end
