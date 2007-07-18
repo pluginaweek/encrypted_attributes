@@ -33,9 +33,9 @@ module PluginAWeek #:nodoc:
         crypted_var_name = "@#{crypted_attr_name}"
         define_method(crypted_attr_name) do
           if (value = read_attribute(crypted_attr_name)) && !value.encrypted?
-            options = options.dup
-            encryptor_class.process_options(self, :read, options)
-            value.encryptor = encryptor_class.new(options)
+            encryptor_options = options.dup
+            encryptor_class.process_options(self, :read, encryptor_options)
+            value.encryptor = encryptor_class.new(encryptor_options)
           end
           
           value
@@ -47,9 +47,9 @@ module PluginAWeek #:nodoc:
           
           if !value.blank?
             unless value.encrypted?
-              options = options.dup
-              encryptor_class.process_options(model, :write, options)
-              value = value.encrypt(mode, options)
+              encryptor_options = options.dup
+              encryptor_class.process_options(model, :write, encryptor_options)
+              value = value.encrypt(mode, encryptor_options)
             end
             
             model.send("#{crypted_attr_name}=", value)

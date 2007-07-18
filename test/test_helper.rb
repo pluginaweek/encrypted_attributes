@@ -1,5 +1,5 @@
 # Load local repository plugin paths
-$:.unshift("#{RAILS_ROOT}/../../../../../ruby/string/encrypted_strings/lib")
+$:.unshift("#{File.dirname(__FILE__)}/../../../../ruby/string/encrypted_strings/lib")
 
 # Load the plugin testing framework
 $:.unshift("#{File.dirname(__FILE__)}/../../../../test/plugin_test_helper/lib")
