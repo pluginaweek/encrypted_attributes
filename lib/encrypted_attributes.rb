@@ -1,5 +1,6 @@
 require 'encrypted_strings'
-require 'encrypted_attributes/extensions/sha_encrypted_string'
+require 'encrypted_attributes/extensions/encryptor'
+require 'encrypted_attributes/extensions/sha_encryptor'
 
 module PluginAWeek #:nodoc:
   module EncryptedAttributes
@@ -8,47 +9,17 @@ module PluginAWeek #:nodoc:
     end
     
     module MacroMethods
-      # Encrypts the specified attribute using the mode given in the configuration
-      # options or, by default, SHA encryption.
+      # Encrypts the specified attribute.
       # 
       # Configuration options:
-      # * <tt>mode</tt> - The mode of encryption to use
-      # * <tt>crypted_name</tt> - The name of the attribute to store the crypted value in.  By default, this is "crypted_#{attr_name}"
+      # * <tt>mode</tt> - The mode of encryption to use.  Default is sha.
+      # * <tt>crypted_name</tt> - The name of the attribute to store the crypted value in.  Default is "crypted_#{attr_name}".
       # 
-      # For additional configuration options, see the individual encryption
-      # class.
+      # For additional configuration options, see the individual encryptor class.
       def encrypts(attr_name, options = {})
         mode = options.delete(:mode) || :sha
-        send("encrypts_#{mode}", attr_name, options)
-      end
-      
-      # Encrypts the specified attribute using an SHA algorithm.
-      # 
-      # Configuration options:
-      # * <tt>crypted_name</tt> - The name of the attribute to store the crypted value in.  By default, this is "crypted_#{attr_name}"
-      # 
-      # For additional configuration options, see the individual encryption
-      # class.
-      def encrypts_sha(attr_name, options = {})
-        encrypts_with(attr_name, SHAEncryptedString, options)
-      end
-      
-      # Encrypts the specified attribute using an asymmetric algorithm.  For
-      # additional configuration options, see the individual encryption class.
-      def encrypts_asymmetrically(attr_name, options = {})
-        encrypts_with(attr_name, AsymmetricallyEncryptedString, options)
-      end
-      alias_method :encrypts_asmmetric, :encrypts_asymmetrically
-      
-      # Encrypts the specified attribute using a symmetric algorithm.  For
-      # additional configuration options, see the individual encryption class.
-      def encrypts_symmetrically(attr_name, options = {})
-        encrypts_with(attr_name, SymmetricallyEncryptedString, options)
-      end
-      alias_method :encrypts_symmetric, :encrypts_symmetrically
-      
-      private
-      def encrypts_with(attr_name, klass, options = {}) #:nodoc:
+        encryptor_class = "PluginAWeek::EncryptedStrings::#{mode.to_s.classify}Encryptor".constantize
+        
         options.reverse_merge!(
           :crypted_name => "crypted_#{attr_name}"
         )
@@ -59,27 +30,15 @@ module PluginAWeek #:nodoc:
         attr_accessor attr_name
         
         # Define the reader when reading the crypted value from the db
-        var_name = "@#{crypted_attr_name}"
-        reader_options = options.dup
-        reader_options[:encrypt] = false
+        crypted_var_name = "@#{crypted_attr_name}"
         define_method(crypted_attr_name) do
-          # Checks the following:
-          # 1. Do we already have a variable @var_name?
-          # 2. Has a value been set for the crypted attribute?
-          # 3. Is the value an empty string?
-          # 4. Is the value already an EncryptedString?
-          # 
-          # If none of these evaluate to true, then we create an encrypted string
-          # based on the current value of the crypted attribute and store it in
-          # the instance variable.
-          # 
-          # This is used mostly for when you've retrieved an existing record
-          # from the database.
-          if (data = instance_variable_get(var_name)).nil? && (data = read_attribute(crypted_attr_name)) && !data.blank? && !data.is_a?(klass)
-            data = instance_variable_set(var_name, create_encrypted_string(klass, data, reader_options))
+          if (value = read_attribute(crypted_attr_name)) && !value.encrypted?
+            options = options.dup
+            encryptor_class.process_options(self, :read, options)
+            value.encryptor = encryptor_class.new(options)
           end
           
-          data
+          value
         end
         
         # Set the value immediately before validation takes place
@@ -87,8 +46,10 @@ module PluginAWeek #:nodoc:
           value = model.send(attr_name)
           
           if !value.blank?
-            unless value.is_a?(EncryptedString)
-              value = model.send(:create_encrypted_string, klass, value, options)
+            unless value.encrypted?
+              options = options.dup
+              encryptor_class.process_options(model, :write, options)
+              value = value.encrypt(mode, options)
             end
             
             model.send("#{crypted_attr_name}=", value)
@@ -97,25 +58,11 @@ module PluginAWeek #:nodoc:
         
         # After saving, be sure to reset the virtual attribute value.  This also
         # supported resetting the confirmation field if, for example, the plugin
-        # is being used for passwods
+        # is being used for passwords
         after_save do |model|
           model.send("#{attr_name}=", nil)
           model.send("#{attr_name}_confirmation=", nil) if model.respond_to?("#{attr_name}_confirmation=")
         end
-        
-        include InstanceMethods unless self.included_modules.include?(InstanceMethods)
-      end
-    end
-    
-    module InstanceMethods #:nodoc:
-      private
-      def create_encrypted_string(klass, value, options)
-        if klass.respond_to?(:process_options)
-          options = options.dup
-          klass.process_options(self, options)
-        end
-        
-        klass.new(value, options)
       end
     end
   end
