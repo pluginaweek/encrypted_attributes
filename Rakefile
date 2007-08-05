@@ -37,6 +37,7 @@ spec = Gem::Specification.new do |s|
   s.require_path    = 'lib'
   s.autorequire     = 'encrypted_attributes'
   s.has_rdoc        = true
+  s.add_dependency  'encrypted_strings', '>= 0.0.1'
   s.test_files      = Dir['test/**/*_test.rb']
   
   s.author          = 'Aaron Pfeifer, Neil Abraham'

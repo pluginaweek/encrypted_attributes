@@ -1,11 +1,11 @@
 require File.expand_path(File.join(File.dirname(__FILE__), '..', 'test_helper'))
 
 class ShaEncryptorTest < Test::Unit::TestCase
-  def test_process_options_exists
+  def test_should_respond_to_process_options
     assert PluginAWeek::EncryptedStrings::ShaEncryptor.respond_to?(:process_options)
   end
   
-  def test_process_options_does_nothing_for_strings
+  def test_process_options_should_not_make_changes_for_salt_string
     options = {:salt => 'my_salt_value'}
     expected_options = {:salt => 'my_salt_value'}
     PluginAWeek::EncryptedStrings::ShaEncryptor.process_options(User.new, :read, options)
@@ -14,7 +14,7 @@ class ShaEncryptorTest < Test::Unit::TestCase
     assert_equal expected_options, options
   end
   
-  def test_process_options_default_salt_on_read
+  def test_process_options_should_use_salt_attribute_for_salt_on_read
     user = ShaUserWithSalt.new
     user.login = 'test'
     user.salt = 'existing_salt'
@@ -26,7 +26,7 @@ class ShaEncryptorTest < Test::Unit::TestCase
     assert_equal expected_options, options
   end
   
-  def test_process_options_default_salt_on_write
+  def test_process_options_should_generate_new_salt_on_write
     user = ShaUserWithSalt.new
     user.login = 'test'
     user.salt = 'existing_salt'
@@ -38,7 +38,7 @@ class ShaEncryptorTest < Test::Unit::TestCase
     assert_equal expected_options, options
   end
   
-  def test_process_options_custom_salt_on_read
+  def test_process_options_should_use_custom_attribute_for_salt_on_read
     user = ShaUserWithCustomSalt.new
     user.login = 'test'
     user.salt_value = 'existing_salt_value'
@@ -50,7 +50,7 @@ class ShaEncryptorTest < Test::Unit::TestCase
     assert_equal expected_options, options
   end
   
-  def test_process_options_custom_salt_on_write
+  def test_process_options_should_generate_new_salt_from_custom_method_on_write
     user = ShaUserWithCustomSalt.new
     user.login = 'test'
     user.salt_value = 'existing_salt_value'

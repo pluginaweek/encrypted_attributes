@@ -1,8 +1,13 @@
 = encrypted_attributes
 
-encrypted_attributes .
+encrypted_attributes adds support for automatically encrypting ActiveRecord
+attributes.
 
 == Resources
+
+API
+
+* http://api.pluginaweek.org/encrypted_attributes
 
 Wiki
 
@@ -22,3 +27,90 @@ Development
 
 == Description
 
+Encrypting attributes can be repetitive especially when doing so throughout
+various models and various projects.  encrypted_attributes, in association
+with the encrypted_strings plugin, helps make encrypting ActiveRecord
+attributes easier by automating the process.
+
+The options that #encrypts takes includes all of the encryption options for
+the specific type of encryptor being used in the encrypted_strings plugin.
+Therefore, if setting the key for asymmetric encryption, this would be passed
+into the #encrypts method.  Examples of this are shown below.
+
+=== SHA Encryption
+
+For SHA encryption, you can either use the default salt, a custom salt, or
+generate one based on the attributes of the model.  If the latter option is
+being used, a column in the table should be created to store the salt that is
+generated.
+
+With the default salt:
+  class User < ActiveRecord::Base
+    encrypts :password
+  end
+
+With a custom salt:
+  class User < ActiveRecord::Base
+    encrypts :password, :salt => true
+    
+    def create_salt
+      "#{login}_salt"
+    end
+  end
+
+=== Symmetric Encryption
+
+With the default key:
+  class User < ActiveRecord::Base
+    encrypts :password, :mode => :symmetric
+  end
+
+With a custom key:
+  class User < ActiveRecord::Base
+    encrypts :password, :mode => :symmetric, :key => 'custom'
+  end
+
+=== Asymmetric Encryption
+
+With default key files:
+  class User < ActiveRecord::Base
+    encrypts :password, :mode => :asymmetric
+  end
+
+With custom key files:
+  class User < ActiveRecord::Base
+    encrypts :password, :mode => :asymmetric, :public_key_file => '/keys/public', :private_key_file => '/keys/private'
+  end
+
+=== The crypted attribute
+
+The attribute which stores the unencrypted value is a "virtual" attribute.
+This means that there is no column with the same name in the database.
+Instead, the encrypted value is stored in the crypted attributed.  By default,
+this is assumed to be "crypted_#{attr_name}".  Therefore, if you are encrypting
+the "password" attribute, the encrypted value would be stored in
+"crypted_password".
+
+The crypted attribute name can be customized like so:
+
+  class User < ActiveRecord::Base
+    encrypts :password, :crypted_name => 'protected_password'
+  end
+
+=== Additional information
+
+For more examples of actual migrations and models that encrypt attributes,
+see the unit tests.  Also, see encrypted_strings for more information about
+the various options that can be passed in.
+
+== Testing
+
+This plugin requires that the plugin_test_helper gem be installed in order to
+run the unit tests.  To install this gem:
+
+  gem install plugin_test_helper
+
+== Dependencies
+
+This plugin depends on the presence of the following plugins:
+# encrypted_strings - http://wiki.pluginaweek.org/Encrypted_strings

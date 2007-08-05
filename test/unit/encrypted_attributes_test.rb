@@ -8,7 +8,7 @@ class EncryptedAttributesTest < Test::Unit::TestCase
     PluginAWeek::EncryptedStrings::SymmetricEncryptor.default_key = 'key'
   end
   
-  def test_basic_encryption
+  def test_encryption_with_default_options
     {
       ShaUser => PluginAWeek::EncryptedStrings::ShaEncryptor,
       AsymmetricUser => PluginAWeek::EncryptedStrings::AsymmetricEncryptor,
@@ -25,7 +25,7 @@ class EncryptedAttributesTest < Test::Unit::TestCase
     end
   end
   
-  def test_encrypts_with_different_crypted_name
+  def test_encryption_with_custom_crypted_attribute
     user = ShaUserWithCustomCryptedAttr.new
     user.login = 'john doe'
     user.password = 'secret'
@@ -37,7 +37,7 @@ class EncryptedAttributesTest < Test::Unit::TestCase
     assert_instance_of PluginAWeek::EncryptedStrings::ShaEncryptor, user.protected_password.encryptor
   end
   
-  def test_encrypt_on_invalid_model
+  def test_should_encrypt_on_invalid_model
     user = ShaUser.new
     user.login = nil
     user.password = 'secret'
@@ -49,7 +49,7 @@ class EncryptedAttributesTest < Test::Unit::TestCase
     assert_instance_of PluginAWeek::EncryptedStrings::ShaEncryptor, user.crypted_password.encryptor
   end
   
-  def test_no_encryption_if_blank
+  def test_should_not_encrypt_if_attribute_is_blank
     user = ShaUser.new
     user.login = 'john doe'
     user.password = nil
@@ -61,7 +61,7 @@ class EncryptedAttributesTest < Test::Unit::TestCase
     assert_nil user.crypted_password
   end
   
-  def test_no_encryption_if_already_encrypted
+  def test_should_not_encrypt_if_already_encrypted
     encrypted_password = 'secret'.encrypt
     
     user = ShaUser.new
@@ -72,7 +72,7 @@ class EncryptedAttributesTest < Test::Unit::TestCase
     assert_equal encrypted_password, user.crypted_password
   end
   
-  def test_attribute_hidden_after_save
+  def test_should_hide_attribute_after_save
     user = ShaUser.new
     user.login = 'john doe'
     user.password = 'secret'
@@ -81,7 +81,7 @@ class EncryptedAttributesTest < Test::Unit::TestCase
     assert_nil user.password
   end
   
-  def test_confirmation_hidden_after_save
+  def test_should_hide_confirmation_attribute_after_save
     user = ConfirmedShaUser.new
     user.login = 'john doe'
     user.password = 'secret'
@@ -92,7 +92,7 @@ class EncryptedAttributesTest < Test::Unit::TestCase
     assert_nil user.password_confirmation
   end
   
-  def test_encrypts_sha_with_generated_salt
+  def test_sha_encryption_with_generated_salt
     user = ShaUserWithSalt.new
     user.login = 'john doe'
     user.password = 'secret'
@@ -103,7 +103,7 @@ class EncryptedAttributesTest < Test::Unit::TestCase
     assert_equal 'secret', user.crypted_password
   end
   
-  def test_encrypts_sha_with_custom_generated_salt
+  def test_sha_encryption_with_custom_generated_salt
     user = ShaUserWithCustomSalt.new
     user.login = 'john doe'
     user.password = 'secret'
@@ -114,7 +114,7 @@ class EncryptedAttributesTest < Test::Unit::TestCase
     assert_equal 'secret', user.crypted_password
   end
   
-  def test_returns_encrypted_password_on_saved_record
+  def test_should_return_encrypted_attribute_for_saved_record
     user = ShaUser.new
     user.login = 'john doe'
     user.password = 'secret'
