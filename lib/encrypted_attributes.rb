@@ -12,8 +12,8 @@ module PluginAWeek #:nodoc:
       # Encrypts the specified attribute.
       # 
       # Configuration options:
-      # * <tt>mode</tt> - The mode of encryption to use.  Default is sha.
-      # * <tt>crypted_name</tt> - The name of the attribute to store the crypted value in.  Default is "crypted_#{attr_name}".
+      # * +mode+ - The mode of encryption to use.  Default is sha.
+      # * +crypted_name+ - The name of the attribute to store the crypted value in.  Default is "crypted_#{attr_name}".
       # 
       # For additional configuration options, see the individual encryptor class.
       def encrypts(attr_name, options = {})

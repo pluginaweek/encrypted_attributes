@@ -1,5 +1,5 @@
 module PluginAWeek #:nodoc:
-  module EncryptedAttributes #:nodoc:
+  module EncryptedAttributes
     module Extensions #:nodoc:
       module ShaEncryptor
         # Adds support for using a salt that is generated based on the model and

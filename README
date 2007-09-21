@@ -1,6 +1,6 @@
 = encrypted_attributes
 
-encrypted_attributes adds support for automatically encrypting ActiveRecord
++encrypted_attributes+ adds support for automatically encrypting ActiveRecord
 attributes.
 
 == Resources
@@ -15,7 +15,7 @@ Wiki
 
 Announcement
 
-* http://www.pluginaweek.org/
+* http://www.pluginaweek.org
 
 Source
 
@@ -32,10 +32,12 @@ various models and various projects.  encrypted_attributes, in association
 with the encrypted_strings plugin, helps make encrypting ActiveRecord
 attributes easier by automating the process.
 
-The options that #encrypts takes includes all of the encryption options for
+The options that +encrypts+ takes includes all of the encryption options for
 the specific type of encryptor being used in the encrypted_strings plugin.
 Therefore, if setting the key for asymmetric encryption, this would be passed
-into the #encrypts method.  Examples of this are shown below.
+into the +encrypts+ method.  Examples of this are show in the Usage section.
+
+== Usage
 
 === SHA Encryption
 
@@ -87,9 +89,9 @@ With custom key files:
 The attribute which stores the unencrypted value is a "virtual" attribute.
 This means that there is no column with the same name in the database.
 Instead, the encrypted value is stored in the crypted attributed.  By default,
-this is assumed to be "crypted_#{attr_name}".  Therefore, if you are encrypting
+this is assumed to be +crypted_#{attr_name}+.  Therefore, if you are encrypting
 the "password" attribute, the encrypted value would be stored in
-"crypted_password".
++crypted_password+.
 
 The crypted attribute name can be customized like so:
 
@@ -105,12 +107,10 @@ the various options that can be passed in.
 
 == Testing
 
-This plugin requires that the plugin_test_helper gem be installed in order to
-run the unit tests.  To install this gem:
-
-  gem install plugin_test_helper
+Before you can run any tests, the following gem must be installed:
+* plugin_test_helper[http://wiki.pluginaweek.org/Plugin_test_helper]
 
 == Dependencies
 
 This plugin depends on the presence of the following plugins:
-# encrypted_strings - http://wiki.pluginaweek.org/Encrypted_strings
+* encrypted_strings[http://wiki.pluginaweek.org/Encrypted_strings]

@@ -1,5 +1,5 @@
 module PluginAWeek #:nodoc:
-  module EncryptedAttributes #:nodoc:
+  module EncryptedAttributes
     module Extensions #:nodoc:
       module Encryptor #:nodoc:
         def process_options(model, operation, options)
