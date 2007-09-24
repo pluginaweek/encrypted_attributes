@@ -1,4 +1,4 @@
-require File.expand_path(File.join(File.dirname(__FILE__), '..', 'test_helper'))
+require File.dirname(__FILE__) + '/../test_helper'
 
 class EncryptedAttributesTest < Test::Unit::TestCase
   def setup

@@ -1,4 +1,4 @@
-require File.expand_path(File.join(File.dirname(__FILE__), '..', 'test_helper'))
+require File.dirname(__FILE__) + '/../test_helper'
 
 class ShaEncryptorTest < Test::Unit::TestCase
   def test_should_respond_to_process_options

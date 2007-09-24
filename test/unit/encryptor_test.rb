@@ -1,4 +1,4 @@
-require File.expand_path(File.join(File.dirname(__FILE__), '..', 'test_helper'))
+require File.dirname(__FILE__) + '/../test_helper'
 
 class EncryptorTest < Test::Unit::TestCase
   def test_should_not_make_any_changes_on_process_options
