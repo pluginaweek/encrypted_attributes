@@ -5,25 +5,25 @@ attributes.
 
 == Resources
 
-API
+Announcement
 
-* http://api.pluginaweek.org/encrypted_attributes
+* http://www.pluginaweek.org
 
 Wiki
 
 * http://wiki.pluginaweek.org/Encrypted_attributes
 
-Announcement
+API
 
-* http://www.pluginaweek.org
-
-Source
-
-* http://svn.pluginaweek.org/trunk/plugins/active_record/miscellaneous/encrypted_attributes
+* http://api.pluginaweek.org/encrypted_attributes
 
 Development
 
 * http://dev.pluginaweek.org/browser/trunk/plugins/active_record/miscellaneous/encrypted_attributes
+
+Source
+
+* http://svn.pluginaweek.org/trunk/plugins/active_record/miscellaneous/encrypted_attributes
 
 == Description
 
