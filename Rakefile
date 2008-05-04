@@ -4,7 +4,7 @@ require 'rake/gempackagetask'
 require 'rake/contrib/sshpublisher'
 
 PKG_NAME           = 'encrypted_attributes'
-PKG_VERSION        = '0.0.2'
+PKG_VERSION        = '0.1.0'
 PKG_FILE_NAME      = "#{PKG_NAME}-#{PKG_VERSION}"
 RUBY_FORGE_PROJECT = 'pluginaweek'
 
@@ -40,7 +40,7 @@ spec = Gem::Specification.new do |s|
   s.test_files      = Dir['test/**/*_test.rb']
   s.add_dependency  'encrypted_strings', '>= 0.0.1'
   
-  s.author          = 'Aaron Pfeifer, Neil Abraham'
+  s.author          = 'Aaron Pfeifer'
   s.email           = 'info@pluginaweek.org'
   s.homepage        = 'http://www.pluginaweek.org'
 end

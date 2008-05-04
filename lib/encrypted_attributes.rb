@@ -1,6 +1,5 @@
 require 'encrypted_strings'
-require 'encrypted_attributes/extensions/encryptor'
-require 'encrypted_attributes/extensions/sha_encryptor'
+require 'encrypted_attributes/sha_encryptor'
 
 module PluginAWeek #:nodoc:
   module EncryptedAttributes
@@ -13,55 +12,62 @@ module PluginAWeek #:nodoc:
       # 
       # Configuration options:
       # * +mode+ - The mode of encryption to use.  Default is sha.
-      # * +crypted_name+ - The name of the attribute to store the crypted value in.  Default is "crypted_#{attr_name}".
+      # * +to+ - The attribute to write the encrypted value. Default is the same attribute being encryupted.
+      # * +if+ - Specifies a method, proc or string to call to determine if the encryption should occur. The method, proc or string should return or evaluate to a true or false value.
+      # * +unless+ - Specifies a method, proc or string to call to determine if the encryption should not occur. The method, proc or string should return or evaluate to a true or false value. 
       # 
       # For additional configuration options, see the individual encryptor class.
       def encrypts(attr_name, options = {})
+        attr_name = attr_name.to_s
+        to_attr_name = options.delete(:to) || attr_name
+        
         mode = options.delete(:mode) || :sha
-        encryptor_class = "PluginAWeek::EncryptedStrings::#{mode.to_s.classify}Encryptor".constantize
-        
-        options.reverse_merge!(
-          :crypted_name => "crypted_#{attr_name}"
-        )
-        crypted_attr_name = options.delete(:crypted_name)
-        raise ArgumentError, 'Attribute name cannot be same as crypted name' if attr_name == crypted_attr_name
-        
-        # Creator accessor for the virtual attribute
-        attr_accessor attr_name
-        
-        # Define the reader when reading the crypted value from the db
-        crypted_var_name = "@#{crypted_attr_name}"
-        define_method(crypted_attr_name) do
-          if (value = read_attribute(crypted_attr_name)) && !value.encrypted?
-            encryptor_options = options.dup
-            encryptor_class.process_options(self, :read, encryptor_options)
-            value.encryptor = encryptor_class.new(encryptor_options)
-          end
-          
-          value
+        if mode == :sha
+          encryptor_class = "PluginAWeek::EncryptedAttributes::#{mode.to_s.classify}Encryptor".constantize
+        else
+          encryptor_class = "PluginAWeek::EncryptedStrings::#{mode.to_s.classify}Encryptor".constantize
         end
         
         # Set the value immediately before validation takes place
-        before_validation do |model|
-          value = model.send(attr_name)
+        before_validation(:if => options.delete(:if), :unless => options.delete(:unless)) do |record|
+          value = record.send(attr_name)
           
-          if !value.blank?
-            unless value.encrypted?
-              encryptor_options = options.dup
-              encryptor_class.process_options(model, :write, encryptor_options)
-              value = value.encrypt(mode, encryptor_options)
-            end
+          unless value.blank? || value.encrypted?
+            # Add contextual information for this plugin's encryptors
+            encryptor =
+              if encryptor_class.parent == PluginAWeek::EncryptedAttributes
+                encryptor_class.new(record, value, :write, options.dup)
+              else
+                encryptor_class.new(options.dup)
+              end
             
-            model.send("#{crypted_attr_name}=", value)
+            # Encrypt the value and then track the encryptor used
+            value = encryptor.encrypt(value)
+            value.encryptor = encryptor
+            
+            record.send("#{to_attr_name}=", value)
           end
+          
+          true
         end
         
-        # After saving, be sure to reset the virtual attribute value.  This also
-        # supported resetting the confirmation field if, for example, the plugin
-        # is being used for passwords
-        after_save do |model|
-          model.send("#{attr_name}=", nil)
-          model.send("#{attr_name}_confirmation=", nil) if model.respond_to?("#{attr_name}_confirmation=")
+        # Define the reader when reading the crypted attribute from the db
+        define_method(to_attr_name) do
+          value = read_attribute(to_attr_name)
+          
+          # Make sure we set the encryptor for equality comparison when reading
+          # from the database
+          unless value.blank? || value.encrypted? || attribute_changed?(to_attr_name)
+            # Add contextual information for this plugin's encryptors
+            value.encryptor =
+              if encryptor_class.parent == PluginAWeek::EncryptedAttributes
+                encryptor_class.new(self, value, :read, options.dup)
+              else
+                encryptor_class.new(options.dup)
+              end
+          end
+          
+          value
         end
       end
     end

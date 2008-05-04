@@ -5,10 +5,6 @@ attributes.
 
 == Resources
 
-Announcement
-
-* http://www.pluginaweek.org
-
 Wiki
 
 * http://wiki.pluginaweek.org/Encrypted_attributes
@@ -19,11 +15,11 @@ API
 
 Development
 
-* http://dev.pluginaweek.org/browser/trunk/plugins/active_record/attributes/encrypted_attributes
+* http://dev.pluginaweek.org/browser/trunk/encrypted_attributes
 
 Source
 
-* http://svn.pluginaweek.org/trunk/plugins/active_record/attributes/encrypted_attributes
+* http://svn.pluginaweek.org/trunk/encrypted_attributes
 
 == Description
 
@@ -42,9 +38,7 @@ into the +encrypts+ method.  Examples of this are show in the Usage section.
 === SHA Encryption
 
 For SHA encryption, you can either use the default salt, a custom salt, or
-generate one based on the attributes of the model.  If the latter option is
-being used, a column in the table should be created to store the salt that is
-generated.
+generate one based on the attributes of the model.
 
 With the default salt:
   class User < ActiveRecord::Base
@@ -53,12 +47,17 @@ With the default salt:
 
 With a custom salt:
   class User < ActiveRecord::Base
-    encrypts :password, :salt => true
+    encrypts :password, :salt => :create_salt
     
-    def create_salt
-      "#{login}_salt"
-    end
+    private
+      def create_salt
+        "#{login}_salt"
+      end
   end
+
+The salt and password values are combined and stored in the attributed being
+encrypted.  Therefore, there's no need to add a second column for storing the
+salt value.
 
 === Symmetric Encryption
 
@@ -84,19 +83,23 @@ With custom key files:
     encrypts :password, :mode => :asymmetric, :public_key_file => '/keys/public', :private_key_file => '/keys/private'
   end
 
-=== The crypted attribute
 
-The attribute which stores the unencrypted value is a "virtual" attribute.
-This means that there is no column with the same name in the database.
-Instead, the encrypted value is stored in the crypted attributed.  By default,
-this is assumed to be +crypted_#{attr_name}+.  Therefore, if you are encrypting
-the "password" attribute, the encrypted value would be stored in
-+crypted_password+.
+=== Targeted Encryption
 
-The crypted attribute name can be customized like so:
+If you want to store the encrypted value in a different attribute than the
+attribute being encrypted, you can do so like so:
 
   class User < ActiveRecord::Base
-    encrypts :password, :crypted_name => 'protected_password'
+    encrypts :password, :to => :crypted_password
+  end
+
+=== Conditional Encryption
+
+Like ActiveRecord validations, +encrypts+ can take <tt>:if</tt> and <tt>:unless</tt>
+parameters that determine whether the encryption should occur.  For example,
+
+  class User < ActiveRecord::Base
+    encrypts :password, :if => Proc.new {Rails.env != 'development'}
   end
 
 === Additional information
@@ -112,5 +115,4 @@ Before you can run any tests, the following gem must be installed:
 
 == Dependencies
 
-This plugin depends on the presence of the following plugins:
 * encrypted_strings[http://wiki.pluginaweek.org/Encrypted_strings]

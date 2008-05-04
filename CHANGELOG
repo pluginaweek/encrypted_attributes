@@ -1,5 +1,15 @@
 *SVN*
 
+*0.1.0* (May 5th, 2008)
+
+* Don't extend encrypted_string's encryptors, instead creating subclasses
+
+* Don't assume anything about attribute confirmations
+
+* Support storing the salt for SHA encryption in the same string as the original value
+
+* Update documentation
+
 *0.0.2* (September 26th, 2007)
 
 * Move test fixtures out of the test application root directory
