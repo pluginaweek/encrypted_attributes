@@ -41,7 +41,7 @@ spec = Gem::Specification.new do |s|
   s.add_dependency  'encrypted_strings', '>= 0.0.1'
   
   s.author          = 'Aaron Pfeifer'
-  s.email           = 'info@pluginaweek.org'
+  s.email           = 'aaron@pluginaweek.org'
   s.homepage        = 'http://www.pluginaweek.org'
 end
   
@@ -53,12 +53,12 @@ end
 
 desc 'Publish the beta gem'
 task :pgem => [:package] do
-  Rake::SshFilePublisher.new('pluginaweek@pluginaweek.org', '/home/pluginaweek/gems.pluginaweek.org/gems', 'pkg', "#{PKG_FILE_NAME}.gem").upload
+  Rake::SshFilePublisher.new('aaron@pluginaweek.org', '/home/aaron/gems.pluginaweek.org/public/gems', 'pkg', "#{PKG_FILE_NAME}.gem").upload
 end
 
 desc 'Publish the API documentation'
 task :pdoc => [:rdoc] do
-  Rake::SshDirPublisher.new('pluginaweek@pluginaweek.org', "/home/pluginaweek/api.pluginaweek.org/#{PKG_NAME}", 'rdoc').upload
+  Rake::SshDirPublisher.new('aaron@pluginaweek.org', "/home/aaron/api.pluginaweek.org/public/#{PKG_NAME}", 'rdoc').upload
 end
 
 desc 'Publish the API docs and gem'
@@ -70,7 +70,7 @@ task :release => [:gem, :package] do
   
   ruby_forge = RubyForge.new
   ruby_forge.login
-
+  
   %w( gem tgz zip ).each do |ext|
     file = "pkg/#{PKG_FILE_NAME}.#{ext}"
     puts "Releasing #{File.basename(file)}..."
