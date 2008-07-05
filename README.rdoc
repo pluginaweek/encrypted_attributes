@@ -29,7 +29,7 @@ with the encrypted_strings plugin, helps make encrypting ActiveRecord
 attributes easier by automating the process.
 
 The options that +encrypts+ takes includes all of the encryption options for
-the specific type of encryptor being used in the encrypted_strings plugin.
+the specific type of encryptor being used from the encrypted_strings plugin.
 Therefore, if setting the key for asymmetric encryption, this would be passed
 into the +encrypts+ method.  Examples of this are show in the Usage section.
 
@@ -45,7 +45,7 @@ With the default salt:
     encrypts :password
   end
 
-With a custom salt:
+With a custom salt based on the record's values:
   class User < ActiveRecord::Base
     encrypts :password, :salt => :create_salt
     
@@ -55,7 +55,7 @@ With a custom salt:
       end
   end
 
-The salt and password values are combined and stored in the attributed being
+The salt and password values are combined and stored in the attribute being
 encrypted.  Therefore, there's no need to add a second column for storing the
 salt value.
 
@@ -83,7 +83,6 @@ With custom key files:
     encrypts :password, :mode => :asymmetric, :public_key_file => '/keys/public', :private_key_file => '/keys/private'
   end
 
-
 === Targeted Encryption
 
 If you want to store the encrypted value in a different attribute than the
@@ -105,8 +104,8 @@ parameters that determine whether the encryption should occur.  For example,
 === Additional information
 
 For more examples of actual migrations and models that encrypt attributes,
-see the unit tests.  Also, see encrypted_strings for more information about
-the various options that can be passed in.
+see the actual API and unit tests.  Also, see encrypted_strings for more
+information about the various options that can be passed in.
 
 == Testing
 
