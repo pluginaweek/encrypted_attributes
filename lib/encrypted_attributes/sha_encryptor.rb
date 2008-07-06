@@ -15,9 +15,9 @@ module PluginAWeek #:nodoc:
             options[:salt] =
               case salt
               when Symbol
-                object.send(salt).to_s
+                object.send(salt)
               when Proc
-                salt.call(object).to_s
+                salt.call(object)
               else
                 salt
               end
@@ -31,7 +31,7 @@ module PluginAWeek #:nodoc:
           # The salt is at the end of the value if it's dynamic
           salt = value[40..-1]
           if @dynamic_salt = !salt.blank?
-            options.merge!(:salt => salt) 
+            options[:salt] = salt 
           end
           
           super(options)

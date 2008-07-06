@@ -1,5 +1,9 @@
 == master
 
+== 0.1.2 / 2008-07-05
+
+* Leave salt stringification up to PluginAWeek::EncryptedString::ShaEncryptor
+
 == 0.1.1 / 2008-06-22
 
 * Remove log files from gems
