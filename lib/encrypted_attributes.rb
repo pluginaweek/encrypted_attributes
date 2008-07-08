@@ -127,7 +127,11 @@ module PluginAWeek #:nodoc:
           value = read_attribute(to_attr_name)
           
           # Make sure we set the encryptor for equality comparison when reading
-          # from the database
+          # from the database. This should only be done if the value is *not*
+          # blank, is *not* encrypted, and hasn't changed since it was read from
+          # the database. The dirty checking is important when the encypted value
+          # is written to the same attribute as the unencrypted value (i.e. you
+          # don't want to encrypt when a new value has been set)
           unless value.blank? || value.encrypted? || attribute_changed?(to_attr_name)
             # Create the encryptor configured for this attribute
             value.encryptor = create_encryptor(encryptor_class, options, :read, value)
