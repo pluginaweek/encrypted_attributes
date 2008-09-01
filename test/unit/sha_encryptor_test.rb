@@ -16,13 +16,13 @@ class ShaEncryptorOnWriteTest < Test::Unit::TestCase
   end
   
   def test_should_allow_block_salt
-    dynamic_salt = Proc.new {|user| user.login}
+    dynamic_salt = lambda {|user| user.login}
     encryptor = PluginAWeek::EncryptedAttributes::ShaEncryptor.new(@user, 'password', :write, :salt => dynamic_salt)
     assert_equal 'admin', encryptor.salt
   end
   
   def test_should_allow_dynamic_nil_salt
-    dynamic_salt = Proc.new {|user| nil}
+    dynamic_salt = lambda {|user| nil}
     encryptor = PluginAWeek::EncryptedAttributes::ShaEncryptor.new(@user, 'password', :write, :salt => dynamic_salt)
     assert_equal '', encryptor.salt
   end
