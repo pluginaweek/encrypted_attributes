@@ -3,10 +3,6 @@ require 'encrypted_attributes/sha_encryptor'
 
 module PluginAWeek #:nodoc:
   module EncryptedAttributes
-    def self.included(base) #:nodoc:
-      base.extend(MacroMethods)
-    end
-    
     module MacroMethods
       # Encrypts the specified attribute.
       # 
@@ -155,5 +151,5 @@ module PluginAWeek #:nodoc:
 end
 
 ActiveRecord::Base.class_eval do
-  include PluginAWeek::EncryptedAttributes
+  extend PluginAWeek::EncryptedAttributes::MacroMethods
 end

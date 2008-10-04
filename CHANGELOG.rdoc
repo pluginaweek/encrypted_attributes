@@ -1,5 +1,7 @@
 == master
 
+* Change how the base module is included to prevent namespacing conflicts
+
 == 0.1.2 / 2008-07-05
 
 * Leave salt stringification up to PluginAWeek::EncryptedString::ShaEncryptor
