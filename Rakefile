@@ -5,7 +5,7 @@ require 'rake/contrib/sshpublisher'
 
 spec = Gem::Specification.new do |s|
   s.name              = 'encrypted_attributes'
-  s.version           = '0.1.2'
+  s.version           = '0.1.3'
   s.platform          = Gem::Platform::RUBY
   s.summary           = 'Adds support for automatically encrypting ActiveRecord attributes'
   
