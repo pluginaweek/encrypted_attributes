@@ -29,7 +29,7 @@ with the encrypted_strings plugin, helps make encrypting ActiveRecord
 attributes easier by automating the process.
 
 The options that +encrypts+ takes includes all of the encryption options for
-the specific type of encryptor being used from the encrypted_strings plugin.
+the specific type of cipher being used from the encrypted_strings library.
 Therefore, if setting the key for asymmetric encryption, this would be passed
 into the +encrypts+ method.  Examples of this are show in the Usage section.
 
@@ -61,24 +61,12 @@ salt value.
 
 === Symmetric Encryption
 
-With the default key:
   class User < ActiveRecord::Base
-    encrypts :password, :mode => :symmetric
-  end
-
-With a custom key:
-  class User < ActiveRecord::Base
-    encrypts :password, :mode => :symmetric, :key => 'custom'
+    encrypts :password, :mode => :symmetric, :password => 'secret'
   end
 
 === Asymmetric Encryption
 
-With default key files:
-  class User < ActiveRecord::Base
-    encrypts :password, :mode => :asymmetric
-  end
-
-With custom key files:
   class User < ActiveRecord::Base
     encrypts :password, :mode => :asymmetric, :public_key_file => '/keys/public', :private_key_file => '/keys/private'
   end
@@ -98,7 +86,7 @@ Like ActiveRecord validations, +encrypts+ can take <tt>:if</tt> and <tt>:unless<
 parameters that determine whether the encryption should occur.  For example,
 
   class User < ActiveRecord::Base
-    encrypts :password, :if => Proc.new {Rails.env != 'development'}
+    encrypts :password, :if => lambda {Rails.env != 'development'}
   end
 
 === Additional information

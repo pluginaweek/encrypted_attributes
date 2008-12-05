@@ -159,12 +159,12 @@ class ShaEncryptionTest < Test::Unit::TestCase
     assert @user.password.encrypted?
   end
   
-  def test_should_use_sha_encryptor
-    assert_instance_of PluginAWeek::EncryptedAttributes::ShaEncryptor, @user.password.encryptor
+  def test_should_use_sha_cipher
+    assert_instance_of PluginAWeek::EncryptedAttributes::ShaCipher, @user.password.cipher
   end
   
   def test_should_use_default_salt
-    assert_equal 'salt', @user.password.encryptor.salt
+    assert_equal 'salt', @user.password.cipher.salt
   end
   
   def test_should_be_able_to_check_password
@@ -192,12 +192,12 @@ class ShaWithCustomSaltEncryptionTest < Test::Unit::TestCase
     assert @user.password.encrypted?
   end
   
-  def test_should_use_sha_encryptor
-    assert_instance_of PluginAWeek::EncryptedAttributes::ShaEncryptor, @user.password.encryptor
+  def test_should_use_sha_cipher
+    assert_instance_of PluginAWeek::EncryptedAttributes::ShaCipher, @user.password.cipher
   end
   
   def test_should_use_custom_salt
-    assert_equal 'admin', @user.password.encryptor.salt
+    assert_equal 'admin', @user.password.cipher.salt
   end
   
   def test_should_be_able_to_check_password
@@ -213,24 +213,24 @@ end
 
 class SymmetricEncryptionTest < Test::Unit::TestCase
   def setup
-    User.encrypts :password, :mode => :symmetric, :key => 'key'
+    User.encrypts :password, :mode => :symmetric, :password => 'key'
     @user = create_user(:login => 'admin', :password => 'secret')
   end
   
   def test_should_encrypt_password
-    assert_equal "+YVKcPbqSWo=\n", @user.password
+    assert_equal "zfKtnSa33tc=\n", @user.password
   end
   
   def test_should_be_encrypted
     assert @user.password.encrypted?
   end
   
-  def test_should_use_sha_encryptor
-    assert_instance_of PluginAWeek::EncryptedStrings::SymmetricEncryptor, @user.password.encryptor
+  def test_should_use_sha_cipher
+    assert_instance_of PluginAWeek::EncryptedStrings::SymmetricCipher, @user.password.cipher
   end
   
-  def test_should_use_custom_key
-    assert_equal 'key', @user.password.encryptor.key
+  def test_should_use_custom_password
+    assert_equal 'key', @user.password.cipher.password
   end
   
   def test_should_be_able_to_check_password
@@ -261,8 +261,8 @@ class AsymmetricEncryptionTest < Test::Unit::TestCase
     assert @user.password.encrypted?
   end
   
-  def test_should_use_sha_encryptor
-    assert_instance_of PluginAWeek::EncryptedStrings::AsymmetricEncryptor, @user.password.encryptor
+  def test_should_use_sha_cipher
+    assert_instance_of PluginAWeek::EncryptedStrings::AsymmetricCipher, @user.password.cipher
   end
   
   def test_should_be_able_to_check_password

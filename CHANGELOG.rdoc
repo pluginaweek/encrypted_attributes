@@ -1,5 +1,7 @@
 == master
 
+* Update to be compatible with encrypted_strings 0.2.1
+
 == 0.1.3 / 2008-10-26
 
 * Change how the base module is included to prevent namespacing conflicts

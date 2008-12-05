@@ -1,10 +1,10 @@
 module PluginAWeek #:nodoc:
   module EncryptedAttributes
     # Adds support for dynamically generated salts
-    class ShaEncryptor < PluginAWeek::EncryptedStrings::ShaEncryptor
+    class ShaCipher < PluginAWeek::EncryptedStrings::ShaCipher
       # Encrypts a string using a Secure Hash Algorithm (SHA), specifically SHA-1.
       # 
-      # The <tt>:start</tt> configuration option can be any one of the following types:
+      # The <tt>:salt</tt> configuration option can be any one of the following types:
       # * +symbol+ - Calls the method on the object whose value is being encrypted
       # * +proc+ - A block that will be invoked, providing it with the object whose value is being encrypted
       # * +string+ - The actual salt value to use
@@ -41,7 +41,7 @@ module PluginAWeek #:nodoc:
       # Encrypts the data, appending the salt to the end of the string if it
       # was created dynamically
       def encrypt(data)
-        encrypted_data = Digest::SHA1.hexdigest(data + salt)
+        encrypted_data = super
         encrypted_data << salt if @dynamic_salt
         encrypted_data
       end

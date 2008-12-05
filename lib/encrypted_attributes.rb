@@ -1,5 +1,5 @@
 require 'encrypted_strings'
-require 'encrypted_attributes/sha_encryptor'
+require 'encrypted_attributes/sha_cipher'
 
 module PluginAWeek #:nodoc:
   module EncryptedAttributes
@@ -7,13 +7,13 @@ module PluginAWeek #:nodoc:
       # Encrypts the specified attribute.
       # 
       # Configuration options:
-      # * +mode+ - The mode of encryption to use.  Default is sha. See PluginAWeek::EncryptedStrings for other possible modes
+      # * +mode+ - The mode of encryption to use.  Default is sha. See PluginAWeek::EncryptedStrings for other possible modes.
       # * +to+ - The attribute to write the encrypted value to. Default is the same attribute being encrypted.
       # * +if+ - Specifies a method, proc or string to call to determine if the encryption should occur. The method, proc or string should return or evaluate to a true or false value.
       # * +unless+ - Specifies a method, proc or string to call to determine if the encryption should not occur. The method, proc or string should return or evaluate to a true or false value. 
       # 
       # For additional configuration options used during the actual encryption,
-      # see the individual encryptor class for the specified mode.
+      # see the individual cipher class for the specified mode.
       # 
       # == Encryption timeline
       # 
@@ -48,18 +48,21 @@ module PluginAWeek #:nodoc:
       # == Encryption mode examples
       # 
       # SHA encryption:
+      # 
       #   class User < ActiveRecord::Base
       #     encrypts :password
       #     # encrypts :password, :salt => :create_salt
       #   end
       # 
       # Symmetric encryption:
+      # 
       #   class User < ActiveRecord::Base
       #     encrypts :password, :mode => :symmetric
       #     # encrypts :password, :mode => :symmetric, :key => 'custom'
       #   end
       # 
       # Asymmetric encryption:
+      # 
       #   class User < ActiveRecord::Base
       #     encrypts :password, :mode => :asymmetric
       #     # encrypts :password, :mode => :asymmetric, :public_key_file => '/keys/public', :private_key_file => '/keys/private'
@@ -68,24 +71,24 @@ module PluginAWeek #:nodoc:
         attr_name = attr_name.to_s
         to_attr_name = options.delete(:to) || attr_name
         
-        # Figure out what encryptor is being configured for the attribute
+        # Figure out what cipher is being configured for the attribute
         mode = options.delete(:mode) || :sha
-        class_name = "#{mode.to_s.classify}Encryptor"
+        class_name = "#{mode.to_s.classify}Cipher"
         if PluginAWeek::EncryptedAttributes.const_defined?(class_name)
-          encryptor_class = PluginAWeek::EncryptedAttributes.const_get(class_name)
+          cipher_class = PluginAWeek::EncryptedAttributes.const_get(class_name)
         else
-          encryptor_class = PluginAWeek::EncryptedStrings.const_get(class_name)
+          cipher_class = PluginAWeek::EncryptedStrings.const_get(class_name)
         end
         
         # Set the encrypted value right before validation takes place
         before_validation(:if => options.delete(:if), :unless => options.delete(:unless)) do |record|
-          record.send(:write_encrypted_attribute, attr_name, to_attr_name, encryptor_class, options)
+          record.send(:write_encrypted_attribute, attr_name, to_attr_name, cipher_class, options)
           true
         end
         
         # Define the reader when reading the encrypted attribute from the database
         define_method(to_attr_name) do
-          read_encrypted_attribute(to_attr_name, encryptor_class, options)
+          read_encrypted_attribute(to_attr_name, cipher_class, options)
         end
         
         unless included_modules.include?(PluginAWeek::EncryptedAttributes::InstanceMethods)
@@ -98,18 +101,18 @@ module PluginAWeek #:nodoc:
       private
         # Encrypts the given attribute to a target location using the encryption
         # options configured for that attribute
-        def write_encrypted_attribute(attr_name, to_attr_name, encryptor_class, options)
+        def write_encrypted_attribute(attr_name, to_attr_name, cipher_class, options)
           value = send(attr_name)
           
           # Only encrypt values that actually have content and have not already
           # been encrypted
           unless value.blank? || value.encrypted?
-            # Create the encryptor configured for this attribute
-            encryptor = create_encryptor(encryptor_class, options, :write, value)
+            # Create the cipher configured for this attribute
+            cipher = create_cipher(cipher_class, options, :write, value)
             
             # Encrypt the value
-            value = encryptor.encrypt(value)
-            value.encryptor = encryptor
+            value = cipher.encrypt(value)
+            value.cipher = cipher
             
             # Update the value based on the target attribute
             send("#{to_attr_name}=", value)
@@ -119,28 +122,28 @@ module PluginAWeek #:nodoc:
         # Reads the given attribute from the database, adding contextual
         # information about how it was encrypted so that equality comparisons
         # can be used
-        def read_encrypted_attribute(to_attr_name, encryptor_class, options)
+        def read_encrypted_attribute(to_attr_name, cipher_class, options)
           value = read_attribute(to_attr_name)
           
-          # Make sure we set the encryptor for equality comparison when reading
+          # Make sure we set the cipher for equality comparison when reading
           # from the database. This should only be done if the value is *not*
           # blank, is *not* encrypted, and hasn't changed since it was read from
           # the database. The dirty checking is important when the encypted value
           # is written to the same attribute as the unencrypted value (i.e. you
           # don't want to encrypt when a new value has been set)
           unless value.blank? || value.encrypted? || attribute_changed?(to_attr_name)
-            # Create the encryptor configured for this attribute
-            value.encryptor = create_encryptor(encryptor_class, options, :read, value)
+            # Create the cipher configured for this attribute
+            value.cipher = create_cipher(cipher_class, options, :read, value)
           end
           
           value
         end
         
-        # Creates a new encryptor with the given configuration options. The
-        # operator defines the context in which the encryptor will be used.
-        def create_encryptor(klass, options, operator, value)
+        # Creates a new cipher with the given configuration options. The
+        # operator defines the context in which the cipher will be used.
+        def create_cipher(klass, options, operator, value)
           if klass.parent == PluginAWeek::EncryptedAttributes
-            # Only use the contextual information for encryptors defined in this plugin
+            # Only use the contextual information for ciphers defined in this plugin
             klass.new(self, value, operator, options.dup)
           else
             klass.new(options.dup)
