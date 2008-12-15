@@ -5,7 +5,7 @@ require 'rake/contrib/sshpublisher'
 
 spec = Gem::Specification.new do |s|
   s.name              = 'encrypted_attributes'
-  s.version           = '0.2.0'
+  s.version           = '0.3.0'
   s.platform          = Gem::Platform::RUBY
   s.summary           = 'Adds support for automatically encrypting ActiveRecord attributes'
   
@@ -13,7 +13,7 @@ spec = Gem::Specification.new do |s|
   s.require_path      = 'lib'
   s.has_rdoc          = true
   s.test_files        = Dir['test/**/*_test.rb']
-  s.add_dependency    'encrypted_strings', '>= 0.2.1'
+  s.add_dependency    'encrypted_strings', '>= 0.3.0'
   
   s.author            = 'Aaron Pfeifer'
   s.email             = 'aaron@pluginaweek.org'
