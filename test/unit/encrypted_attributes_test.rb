@@ -160,7 +160,7 @@ class ShaEncryptionTest < Test::Unit::TestCase
   end
   
   def test_should_use_sha_cipher
-    assert_instance_of PluginAWeek::EncryptedAttributes::ShaCipher, @user.password.cipher
+    assert_instance_of EncryptedAttributes::ShaCipher, @user.password.cipher
   end
   
   def test_should_use_default_salt
@@ -193,7 +193,7 @@ class ShaWithCustomSaltEncryptionTest < Test::Unit::TestCase
   end
   
   def test_should_use_sha_cipher
-    assert_instance_of PluginAWeek::EncryptedAttributes::ShaCipher, @user.password.cipher
+    assert_instance_of EncryptedAttributes::ShaCipher, @user.password.cipher
   end
   
   def test_should_use_custom_salt
@@ -226,7 +226,7 @@ class SymmetricEncryptionTest < Test::Unit::TestCase
   end
   
   def test_should_use_sha_cipher
-    assert_instance_of PluginAWeek::EncryptedStrings::SymmetricCipher, @user.password.cipher
+    assert_instance_of EncryptedStrings::SymmetricCipher, @user.password.cipher
   end
   
   def test_should_use_custom_password
@@ -262,7 +262,7 @@ class AsymmetricEncryptionTest < Test::Unit::TestCase
   end
   
   def test_should_use_sha_cipher
-    assert_instance_of PluginAWeek::EncryptedStrings::AsymmetricCipher, @user.password.cipher
+    assert_instance_of EncryptedStrings::AsymmetricCipher, @user.password.cipher
   end
   
   def test_should_be_able_to_check_password

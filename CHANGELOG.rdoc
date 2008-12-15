@@ -1,5 +1,7 @@
 == master
 
+* Remove the PluginAWeek namespace
+
 == 0.2.0 / 2008-12-4
 
 * Update to be compatible with encrypted_strings 0.2.1
