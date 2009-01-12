@@ -6,10 +6,16 @@ module EncryptedAttributes
     # Encrypts the specified attribute.
     # 
     # Configuration options:
-    # * +mode+ - The mode of encryption to use.  Default is sha. See EncryptedStrings for other possible modes.
-    # * +to+ - The attribute to write the encrypted value to. Default is the same attribute being encrypted.
-    # * +if+ - Specifies a method, proc or string to call to determine if the encryption should occur. The method, proc or string should return or evaluate to a true or false value.
-    # * +unless+ - Specifies a method, proc or string to call to determine if the encryption should not occur. The method, proc or string should return or evaluate to a true or false value. 
+    # * <tt>:mode</tt> - The mode of encryption to use.  Default is sha. See
+    #   EncryptedStrings for other possible modes.
+    # * <tt>:to</tt> - The attribute to write the encrypted value to. Default is
+    #   the same attribute being encrypted.
+    # * <tt>:if</tt> - Specifies a method, proc or string to call to determine
+    #   if the encryption should occur. The method, proc or string should return
+    #   or evaluate to a true or false value.
+    # * <tt>:unless</tt> - Specifies a method, proc or string to call to
+    #   determine if the encryption should not occur. The method, proc or string
+    #   should return or evaluate to a true or false value. 
     # 
     # For additional configuration options used during the actual encryption,
     # see the individual cipher class for the specified mode.

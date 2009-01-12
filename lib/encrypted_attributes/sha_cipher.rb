@@ -5,7 +5,8 @@ module EncryptedAttributes
     # 
     # The <tt>:salt</tt> configuration option can be any one of the following types:
     # * +symbol+ - Calls the method on the object whose value is being encrypted
-    # * +proc+ - A block that will be invoked, providing it with the object whose value is being encrypted
+    # * +proc+ - A block that will be invoked, providing it with the object
+    #   whose value is being encrypted
     # * +string+ - The actual salt value to use
     def initialize(object, value, operation, options = {}) #:nodoc:
       if operation == :write
