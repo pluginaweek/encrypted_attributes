@@ -1,6 +1,6 @@
 require File.dirname(__FILE__) + '/../test_helper'
 
-class EncryptedAttributesTest < Test::Unit::TestCase
+class EncryptedAttributesTest < ActiveSupport::TestCase
   def setup
     User.encrypts :password
   end
@@ -61,7 +61,7 @@ class EncryptedAttributesTest < Test::Unit::TestCase
   end
 end
 
-class EncryptedAttributesWithDifferentTargetTest < Test::Unit::TestCase
+class EncryptedAttributesWithDifferentTargetTest < ActiveSupport::TestCase
   def setup
     User.encrypts :password, :to => :crypted_password
   end
@@ -113,7 +113,7 @@ class EncryptedAttributesWithDifferentTargetTest < Test::Unit::TestCase
   end
 end
 
-class EncryptedAttributesWithConditionalsTest < Test::Unit::TestCase
+class EncryptedAttributesWithConditionalsTest < ActiveSupport::TestCase
   def test_should_not_encrypt_if_if_conditional_is_false
     User.encrypts :password, :if => lambda {|user| false}
     user = create_user(:login => 'admin', :password => 'secret')
@@ -145,7 +145,7 @@ class EncryptedAttributesWithConditionalsTest < Test::Unit::TestCase
   end
 end
 
-class ShaEncryptionTest < Test::Unit::TestCase
+class ShaEncryptionTest < ActiveSupport::TestCase
   def setup
     User.encrypts :password, :mode => :sha
     @user = create_user(:login => 'admin', :password => 'secret')
@@ -178,7 +178,7 @@ class ShaEncryptionTest < Test::Unit::TestCase
   end
 end
 
-class ShaWithCustomSaltEncryptionTest < Test::Unit::TestCase
+class ShaWithCustomSaltEncryptionTest < ActiveSupport::TestCase
   def setup
     User.encrypts :password, :mode => :sha, :salt => :login
     @user = create_user(:login => 'admin', :password => 'secret')
@@ -211,7 +211,7 @@ class ShaWithCustomSaltEncryptionTest < Test::Unit::TestCase
   end
 end
 
-class SymmetricEncryptionTest < Test::Unit::TestCase
+class SymmetricEncryptionTest < ActiveSupport::TestCase
   def setup
     User.encrypts :password, :mode => :symmetric, :password => 'key'
     @user = create_user(:login => 'admin', :password => 'secret')
@@ -244,7 +244,7 @@ class SymmetricEncryptionTest < Test::Unit::TestCase
   end
 end
 
-class AsymmetricEncryptionTest < Test::Unit::TestCase
+class AsymmetricEncryptionTest < ActiveSupport::TestCase
   def setup
     User.encrypts :password, :mode => :asymmetric,
       :private_key_file => File.dirname(__FILE__) + '/../keys/private',
