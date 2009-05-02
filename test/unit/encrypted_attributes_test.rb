@@ -178,34 +178,34 @@ class EncryptedAttributesWithConflictingVirtualAttributeSourceTest < ActiveSuppo
 end
 
 class EncryptedAttributesWithConditionalsTest < ActiveSupport::TestCase
-  def test_should_not_encrypt_if_if_conditional_is_false
-    User.encrypts :password, :if => lambda {|user| false}
-    user = create_user(:login => 'admin', :password => 'secret')
+  def setup
+    User.encrypts :password, :on => :before_create
+  end
+  
+  def test_should_not_encrypt_on_validation
+    user = new_user(:login => 'admin', :password => 'secret')
+    user.valid?
     assert_equal 'secret', user.password
   end
   
-  def test_should_encrypt_if_if_conditional_is_true
-    User.encrypts :password, :if => lambda {|user| true}
-    user = create_user(:login => 'admin', :password => 'secret')
-    assert_equal '8152bc582f58c854f580cb101d3182813dec4afe', "#{user.password}"
-  end
-  
-  def test_should_not_encrypt_if_unless_conditional_is_true
-    User.encrypts :password, :unless => lambda {|user| true}
-    user = create_user(:login => 'admin', :password => 'secret')
-    assert_equal 'secret', user.password
-  end
-  
-  def test_should_encrypt_if_unless_conditional_is_false
-    User.encrypts :password, :unless => lambda {|user| false}
-    user = create_user(:login => 'admin', :password => 'secret')
+  def test_should_encrypt_on_create
+    user = new_user(:login => 'admin', :password => 'secret')
+    user.save
     assert_equal '8152bc582f58c854f580cb101d3182813dec4afe', "#{user.password}"
   end
   
   def teardown
     User.class_eval do
-      @before_validation_callbacks = nil
+      @before_save_callbacks = nil
     end
+  end
+end
+
+class EncryptedAttributesWithCustomCallbackTest < ActiveSupport::TestCase
+  def test_should_not_encrypt_if_if_conditional_is_false
+    User.encrypts :password, :if => lambda {|user| false}
+    user = create_user(:login => 'admin', :password => 'secret')
+    assert_equal 'secret', user.password
   end
 end
 

@@ -10,6 +10,9 @@ module EncryptedAttributes
     #   EncryptedStrings for other possible modes.
     # * <tt>:to</tt> - The attribute to write the encrypted value to. Default is
     #   the same attribute being encrypted.
+    # * <tt>:on</tt> - The ActiveRecord callback to use when triggering the
+    #   encryption.  By default, this will encrypt on <tt>before_validation</tt>.
+    #   See ActiveRecord::Callbacks for a list of possible callbacks.
     # * <tt>:if</tt> - Specifies a method, proc or string to call to determine
     #   if the encryption should occur. The method, proc or string should return
     #   or evaluate to a true or false value.
@@ -85,8 +88,9 @@ module EncryptedAttributes
         cipher_class = EncryptedStrings.const_get(class_name)
       end
       
-      # Set the encrypted value right before validation takes place
-      before_validation(:if => options.delete(:if), :unless => options.delete(:unless)) do |record|
+      # Set the encrypted value on the configured callback
+      callback = options.delete(:on) || :before_validation
+      send(callback, :if => options.delete(:if), :unless => options.delete(:unless)) do |record|
         record.send(:write_encrypted_attribute, attr_name, to_attr_name, cipher_class, options)
         true
       end
