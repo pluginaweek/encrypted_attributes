@@ -177,9 +177,9 @@ class EncryptedAttributesWithConflictingVirtualAttributeSourceTest < ActiveSuppo
   end
 end
 
-class EncryptedAttributesWithConditionalsTest < ActiveSupport::TestCase
+class EncryptedAttributesWithCustomCallbackTest < ActiveSupport::TestCase
   def setup
-    User.encrypts :password, :on => :before_create
+    User.encrypts :password, :on => :before_save
   end
   
   def test_should_not_encrypt_on_validation
@@ -201,11 +201,116 @@ class EncryptedAttributesWithConditionalsTest < ActiveSupport::TestCase
   end
 end
 
-class EncryptedAttributesWithCustomCallbackTest < ActiveSupport::TestCase
+class EncryptedAttributesWithConditionalsTest < ActiveSupport::TestCase
   def test_should_not_encrypt_if_if_conditional_is_false
     User.encrypts :password, :if => lambda {|user| false}
     user = create_user(:login => 'admin', :password => 'secret')
     assert_equal 'secret', user.password
+  end
+  
+  def test_should_encrypt_if_if_conditional_is_true
+    User.encrypts :password, :if => lambda {|user| true}
+    user = create_user(:login => 'admin', :password => 'secret')
+    assert_equal '8152bc582f58c854f580cb101d3182813dec4afe', "#{user.password}"
+  end
+  
+  def test_should_not_encrypt_if_unless_conditional_is_true
+    User.encrypts :password, :unless => lambda {|user| true}
+    user = create_user(:login => 'admin', :password => 'secret')
+    assert_equal 'secret', user.password
+  end
+  
+  def test_should_encrypt_if_unless_conditional_is_false
+    User.encrypts :password, :unless => lambda {|user| false}
+    user = create_user(:login => 'admin', :password => 'secret')
+    assert_equal '8152bc582f58c854f580cb101d3182813dec4afe', "#{user.password}"
+  end
+  
+  def teardown
+    User.class_eval do
+      @before_validation_callbacks = nil
+    end
+  end
+end
+
+class EncryptedAttributesWithBeforeCallbacksTest < ActiveSupport::TestCase
+  def setup
+    @password = nil
+    @ran_callback = false
+    User.encrypts :password, :before => lambda {|user| @ran_callback = true; @password = user.password.to_s}
+    
+    create_user(:login => 'admin', :password => 'secret')
+  end
+  
+  def test_should_run_callback
+    assert @ran_callback
+  end
+  
+  def test_should_not_have_encrypted_yet
+    assert_equal 'secret', @password
+  end
+  
+  def teardown
+    User.class_eval do
+      @before_validation_callbacks = nil
+      @before_encrypt_password_callbacks = nil
+    end
+  end
+end
+
+class EncryptedAttributesWithAfterCallbacksTest < ActiveSupport::TestCase
+  def setup
+    @password = nil
+    @ran_callback = false
+    User.encrypts :password, :after => lambda {|user| @ran_callback = true; @password = user.password.to_s}
+    
+    create_user(:login => 'admin', :password => 'secret')
+  end
+  
+  def test_should_run_callback
+    assert @ran_callback
+  end
+  
+  def test_should_have_encrypted_already
+    assert_equal '8152bc582f58c854f580cb101d3182813dec4afe', @password
+  end
+  
+  def teardown
+    User.class_eval do
+      @before_validation_callbacks = nil
+      @after_encrypt_password_callbacks = nil
+    end
+  end
+end
+
+class EncryptedAttributesWithDynamicConfigurationTest < ActiveSupport::TestCase
+  def setup
+    @salt = nil
+    User.encrypts :password, :before => lambda {|user| user.salt = user.login} do |user|
+      {:salt => @salt = user.salt}
+    end
+    
+    @user = create_user(:login => 'admin', :password => 'secret')
+  end
+  
+  def test_should_use_dynamic_configuration_during_write
+    assert_equal 'a55d037f385cad22efe7862e07b805938d150154', "#{@user[:password]}"
+  end
+  
+  def test_should_use_dynamic_configuration_during_read
+    user = User.find(@user.id)
+    assert_equal 'a55d037f385cad22efe7862e07b805938d150154', "#{user.password}"
+  end
+  
+  def test_should_build_configuration_after_before_callbacks_invoked
+    assert_equal 'admin', @salt
+  end
+  
+  def teardown
+    User.class_eval do
+      @before_validation_callbacks = nil
+      @before_encrypt_password_callbacks = nil
+    end
   end
 end
 
@@ -232,7 +337,7 @@ class ShaEncryptionTest < ActiveSupport::TestCase
   end
   
   def test_should_be_able_to_check_password
-    assert_equal 'secret', @user.password
+    assert_equal 'secret', @user. password
   end
   
   def teardown
@@ -242,9 +347,9 @@ class ShaEncryptionTest < ActiveSupport::TestCase
   end
 end
 
-class ShaWithCustomSaltEncryptionTest < ActiveSupport::TestCase
+class ShaWithEmbeddedSaltEncryptionTest < ActiveSupport::TestCase
   def setup
-    User.encrypts :password, :mode => :sha, :salt => :login
+    User.encrypts :password, :mode => :sha, :salt => 'admin', :embed_salt => true
     @user = create_user(:login => 'admin', :password => 'secret')
   end
   

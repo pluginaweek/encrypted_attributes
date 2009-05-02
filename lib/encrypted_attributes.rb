@@ -3,13 +3,17 @@ require 'encrypted_attributes/sha_cipher'
 
 module EncryptedAttributes
   module MacroMethods
-    # Encrypts the specified attribute.
+    # Encrypts the given attribute.
     # 
     # Configuration options:
-    # * <tt>:mode</tt> - The mode of encryption to use.  Default is sha. See
-    #   EncryptedStrings for other possible modes.
-    # * <tt>:to</tt> - The attribute to write the encrypted value to. Default is
-    #   the same attribute being encrypted.
+    # * <tt>:mode</tt> - The mode of encryption to use.  Default is <tt>:sha</tt>.
+    #   See EncryptedStrings for other possible modes.
+    # * <tt>:to</tt> - The attribute to write the encrypted value to. Default
+    #   is the same attribute being encrypted.
+    # * <tt>:before</tt> - The callback to invoke every time *before* the
+    #   attribute is encrypted
+    # * <tt>:after</tt> - The callback to invoke every time *after* the
+    #   attribute is encrypted
     # * <tt>:on</tt> - The ActiveRecord callback to use when triggering the
     #   encryption.  By default, this will encrypt on <tt>before_validation</tt>.
     #   See ActiveRecord::Callbacks for a list of possible callbacks.
@@ -25,11 +29,11 @@ module EncryptedAttributes
     # 
     # == Encryption timeline
     # 
-    # Attributes are encrypted immediately before a record is validated.
-    # This means that you can still validate the presence of the encrypted
-    # attribute, but other things like password length cannot be validated
-    # without either (a) decrypting the value first or (b) using a different
-    # encryption target.  For example,
+    # By default, attributes are encrypted immediately before a record is
+    # validated.  This means that you can still validate the presence of the
+    # encrypted attribute, but other things like password length cannot be
+    # validated without either (a) decrypting the value first or (b) using a
+    # different encryption target.  For example,
     # 
     #   class User < ActiveRecord::Base
     #     encrypts :password, :to => :crypted_password
@@ -59,7 +63,7 @@ module EncryptedAttributes
     # 
     #   class User < ActiveRecord::Base
     #     encrypts :password
-    #     # encrypts :password, :salt => :create_salt
+    #     # encrypts :password, :salt => 'secret'
     #   end
     # 
     # Symmetric encryption:
@@ -75,7 +79,32 @@ module EncryptedAttributes
     #     encrypts :password, :mode => :asymmetric
     #     # encrypts :password, :mode => :asymmetric, :public_key_file => '/keys/public', :private_key_file => '/keys/private'
     #   end
-    def encrypts(attr_name, options = {})
+    # 
+    # == Dynamic configuration
+    # 
+    # For better security, the encryption options (such as the salt value)
+    # can be based on values in each individual record.  In order to
+    # dynamically configure the encryption options so that individual records
+    # can be referenced, an optional block can be specified.
+    # 
+    # For example,
+    # 
+    #   class User < ActiveRecord::Base
+    #     encrypts :password, :mode => :sha, :before => :create_salt do |user|
+    #       {:salt => user.salt}
+    #     end
+    #     
+    #     private
+    #       def create_salt
+    #         self.salt = "#{login}-#{Time.now}"
+    #       end
+    #   end
+    # 
+    # In the above example, the SHA encryption's <tt>salt</tt> is configured
+    # dynamically based on the user's login and the time at which it was
+    # encrypted.  This helps improve the security of the user's password.
+    def encrypts(attr_name, options = {}, &config)
+      config ||= options
       attr_name = attr_name.to_s
       to_attr_name = (options.delete(:to) || attr_name).to_s
       
@@ -88,10 +117,15 @@ module EncryptedAttributes
         cipher_class = EncryptedStrings.const_get(class_name)
       end
       
+      # Define encryption hooks
+      define_callbacks("before_encrypt_#{attr_name}", "after_encrypt_#{attr_name}")
+      send("before_encrypt_#{attr_name}", options.delete(:before)) if options.include?(:before)
+      send("after_encrypt_#{attr_name}", options.delete(:after)) if options.include?(:after)
+      
       # Set the encrypted value on the configured callback
       callback = options.delete(:on) || :before_validation
       send(callback, :if => options.delete(:if), :unless => options.delete(:unless)) do |record|
-        record.send(:write_encrypted_attribute, attr_name, to_attr_name, cipher_class, options)
+        record.send(:write_encrypted_attribute, attr_name, to_attr_name, cipher_class, config)
         true
       end
       
@@ -103,7 +137,7 @@ module EncryptedAttributes
       
       # Define the reader when reading the encrypted attribute from the database
       define_method(to_attr_name) do
-        read_encrypted_attribute(to_attr_name, cipher_class, options)
+        read_encrypted_attribute(to_attr_name, cipher_class, config)
       end
       
       unless included_modules.include?(EncryptedAttributes::InstanceMethods)
@@ -122,8 +156,10 @@ module EncryptedAttributes
         # Only encrypt values that actually have content and have not already
         # been encrypted
         unless value.blank? || value.encrypted?
+          callback("before_encrypt_#{attr_name}")
+          
           # Create the cipher configured for this attribute
-          cipher = create_cipher(cipher_class, options, :write, value)
+          cipher = create_cipher(cipher_class, options, value)
           
           # Encrypt the value
           value = cipher.encrypt(value)
@@ -131,6 +167,8 @@ module EncryptedAttributes
           
           # Update the value based on the target attribute
           send("#{to_attr_name}=", value)
+          
+          callback("after_encrypt_#{attr_name}")
         end
       end
       
@@ -148,21 +186,18 @@ module EncryptedAttributes
         # don't want to encrypt when a new value has been set)
         unless value.blank? || value.encrypted? || attribute_changed?(to_attr_name)
           # Create the cipher configured for this attribute
-          value.cipher = create_cipher(cipher_class, options, :read, value)
+          value.cipher = create_cipher(cipher_class, options, value)
         end
         
         value
       end
       
-      # Creates a new cipher with the given configuration options. The
-      # operator defines the context in which the cipher will be used.
-      def create_cipher(klass, options, operator, value)
-        if klass.parent == EncryptedAttributes
-          # Only use the contextual information for ciphers defined in this plugin
-          klass.new(self, value, operator, options.dup)
-        else
-          klass.new(options.dup)
-        end
+      # Creates a new cipher with the given configuration options
+      def create_cipher(klass, options, value)
+        options = options.is_a?(Proc) ? options.call(self) : options.dup
+        
+        # Only use the contextual information for this plugin's ciphers
+        klass.parent == EncryptedAttributes ? klass.new(value, options) : klass.new(options)
       end
   end
 end

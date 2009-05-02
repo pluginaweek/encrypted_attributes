@@ -1,5 +1,8 @@
 == master
 
+* Replace dynamic :salt option with :embed_salt option and utilizing the #encrypts block 
+* Allow a block to be used for dynamically defining encryption options
+* Add :before / :after callbacks for hooking into the encryption process
 * Allow the callback when encryption occurs to be customized [Sergio Salvatore]
 * Define source attribute accessor if different than target and not defined [Sergio Salvatore]
 * Update tests to work with Rails 2.3

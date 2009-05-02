@@ -25,7 +25,7 @@ Source
 
 Encrypting attributes can be repetitive especially when doing so throughout
 various models and various projects.  encrypted_attributes, in association
-with the encrypted_strings plugin, helps make encrypting ActiveRecord
+with the encrypted_strings library, helps make encrypting ActiveRecord
 attributes easier by automating the process.
 
 The options that +encrypts+ takes includes all of the encryption options for
@@ -35,46 +35,46 @@ into the +encrypts+ method.  Examples of this are show in the Usage section.
 
 == Usage
 
-=== SHA Encryption
+=== Encryption Modes
 
-For SHA encryption, you can either use the default salt, a custom salt, or
-generate one based on the attributes of the model.
+SHA, symmetric, and asymmetric encryption modes are supported (default is SHA):
 
-With the default salt:
   class User < ActiveRecord::Base
-    encrypts :password
+    encrypts :password, :salt => 'secret'
+    # encrypts :password, :mode => :symmetric, :password => 'secret'
+    # encrypts :password, :mode => :asymmetric, :public_key_file => '/keys/public', :private_key_file => '/keys/private'
   end
 
-With a custom salt based on the record's values:
+=== Dynamic Configuration
+
+The encryption configuration can be dynamically set like so:
+
   class User < ActiveRecord::Base
-    encrypts :password, :salt => :create_salt
+    encrypts :password, :mode => :sha do |user|
+      {:salt => "#{user.login}-#{Time.now}", :embed_salt => true}
+    end
+  end
+
+In this case, the salt and password values are combined and stored in the
+attribute being encrypted.  Therefore, there's no need to add a second column
+for storing the salt value.
+
+To store the dynamic salt in a separate column:
+
+  class User < ActiveRecord::Base
+    encrypts :password, :mode => :sha, :before => :create_salt do |user|
+      {:salt => user.salt}
+    end
     
-    private
-      def create_salt
-        "#{login}_salt"
-      end
-  end
-
-The salt and password values are combined and stored in the attribute being
-encrypted.  Therefore, there's no need to add a second column for storing the
-salt value.
-
-=== Symmetric Encryption
-
-  class User < ActiveRecord::Base
-    encrypts :password, :mode => :symmetric, :password => 'secret'
-  end
-
-=== Asymmetric Encryption
-
-  class User < ActiveRecord::Base
-    encrypts :password, :mode => :asymmetric, :public_key_file => '/keys/public', :private_key_file => '/keys/private'
+    def create_salt
+      self.salt = "#{login}-#{Time.now}"
+    end
   end
 
 === Targeted Encryption
 
 If you want to store the encrypted value in a different attribute than the
-attribute being encrypted, you can do so like so:
+attribute being encrypted:
 
   class User < ActiveRecord::Base
     encrypts :password, :to => :crypted_password

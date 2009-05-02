@@ -1,7 +1,7 @@
 class CreateUsers < ActiveRecord::Migration
   def self.up
     create_table :users do |t|
-      t.string :login, :password, :crypted_password
+      t.string :login, :password, :crypted_password, :salt
     end
   end
   
