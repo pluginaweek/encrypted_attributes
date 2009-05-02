@@ -1,5 +1,6 @@
 == master
 
+* Define source attribute accessor if different than target and not defined [Sergio Salvatore]
 * Update tests to work with Rails 2.3
 
 == 0.3.0 / 2008-12-14

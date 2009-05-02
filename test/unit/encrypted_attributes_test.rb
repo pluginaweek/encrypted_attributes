@@ -113,6 +113,70 @@ class EncryptedAttributesWithDifferentTargetTest < ActiveSupport::TestCase
   end
 end
 
+class EncryptedAttributesWithVirtualAttributeSourceTest < ActiveSupport::TestCase
+  def setup
+    User.encrypts :raw_password, :to => :crypted_password
+  end
+  
+  def test_should_define_source_reader
+    assert User.method_defined?(:raw_password)
+  end
+  
+  def test_should_define_source_writer
+    assert User.method_defined?(:raw_password=)
+  end
+  
+  def test_should_encrypt_from_virtual_attribute
+    user = create_user(:login => 'admin', :raw_password => 'secret')
+    assert user.crypted_password.encrypted?
+    assert_equal '8152bc582f58c854f580cb101d3182813dec4afe', "#{user.crypted_password}"
+  end
+  
+  def teardown
+    User.class_eval do
+      @before_validation_callbacks = nil
+      
+      remove_method(:raw_password)
+      remove_method(:raw_password=)
+    end
+  end
+end
+
+class EncryptedAttributesWithConflictingVirtualAttributeSourceTest < ActiveSupport::TestCase
+  def setup
+    User.class_eval do
+      def raw_password
+        'raw_password'
+      end
+      
+      def raw_password=(value)
+        self.password = value
+      end
+    end
+    
+    User.encrypts :raw_password, :to => :crypted_password
+    @user = User.new
+  end
+  
+  def test_should_not_define_source_reader
+    assert_equal 'raw_password', @user.raw_password
+  end
+  
+  def test_should_not_define_source_writer
+    @user.raw_password = 'raw_password'
+    assert_equal 'raw_password', @user.password
+  end
+  
+  def teardown
+    User.class_eval do
+      @before_validation_callbacks = nil
+      
+      remove_method(:raw_password)
+      remove_method(:raw_password=)
+    end
+  end
+end
+
 class EncryptedAttributesWithConditionalsTest < ActiveSupport::TestCase
   def test_should_not_encrypt_if_if_conditional_is_false
     User.encrypts :password, :if => lambda {|user| false}

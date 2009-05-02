@@ -74,7 +74,7 @@ module EncryptedAttributes
     #   end
     def encrypts(attr_name, options = {})
       attr_name = attr_name.to_s
-      to_attr_name = options.delete(:to) || attr_name
+      to_attr_name = (options.delete(:to) || attr_name).to_s
       
       # Figure out what cipher is being configured for the attribute
       mode = options.delete(:mode) || :sha
@@ -89,6 +89,12 @@ module EncryptedAttributes
       before_validation(:if => options.delete(:if), :unless => options.delete(:unless)) do |record|
         record.send(:write_encrypted_attribute, attr_name, to_attr_name, cipher_class, options)
         true
+      end
+      
+      # Define virtual source attribute
+      if attr_name != to_attr_name && !column_names.include?(attr_name)
+        attr_reader attr_name unless method_defined?(attr_name)
+        attr_writer attr_name unless method_defined?("#{attr_name}=")
       end
       
       # Define the reader when reading the encrypted attribute from the database
