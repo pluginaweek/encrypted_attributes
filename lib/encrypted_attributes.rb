@@ -103,45 +103,51 @@ module EncryptedAttributes
     # In the above example, the SHA encryption's <tt>salt</tt> is configured
     # dynamically based on the user's login and the time at which it was
     # encrypted.  This helps improve the security of the user's password.
-    def encrypts(attr_name, options = {}, &config)
-      config ||= options
-      attr_name = attr_name.to_s
-      to_attr_name = (options.delete(:to) || attr_name).to_s
+    def encrypts(*attr_names, &config)
+      base_options = attr_names.last.is_a?(Hash) ? attr_names.pop : {}
       
-      # Figure out what cipher is being configured for the attribute
-      mode = options.delete(:mode) || :sha
-      class_name = "#{mode.to_s.classify}Cipher"
-      if EncryptedAttributes.const_defined?(class_name)
-        cipher_class = EncryptedAttributes.const_get(class_name)
-      else
-        cipher_class = EncryptedStrings.const_get(class_name)
-      end
-      
-      # Define encryption hooks
-      define_callbacks("before_encrypt_#{attr_name}", "after_encrypt_#{attr_name}")
-      send("before_encrypt_#{attr_name}", options.delete(:before)) if options.include?(:before)
-      send("after_encrypt_#{attr_name}", options.delete(:after)) if options.include?(:after)
-      
-      # Set the encrypted value on the configured callback
-      callback = options.delete(:on) || :before_validation
-      send(callback, :if => options.delete(:if), :unless => options.delete(:unless)) do |record|
-        record.send(:write_encrypted_attribute, attr_name, to_attr_name, cipher_class, config)
-        true
-      end
-      
-      # Define virtual source attribute
-      if attr_name != to_attr_name && !column_names.include?(attr_name)
-        attr_reader attr_name unless method_defined?(attr_name)
-        attr_writer attr_name unless method_defined?("#{attr_name}=")
-      end
-      
-      # Define the reader when reading the encrypted attribute from the database
-      define_method(to_attr_name) do
-        read_encrypted_attribute(to_attr_name, cipher_class, config)
-      end
-      
-      unless included_modules.include?(EncryptedAttributes::InstanceMethods)
-        include EncryptedAttributes::InstanceMethods
+      attr_names.each do |attr_name|
+        options = base_options.dup
+        attr_name = attr_name.to_s
+        to_attr_name = (options.delete(:to) || attr_name).to_s
+        
+        # Figure out what cipher is being configured for the attribute
+        mode = options.delete(:mode) || :sha
+        class_name = "#{mode.to_s.classify}Cipher"
+        if EncryptedAttributes.const_defined?(class_name)
+          cipher_class = EncryptedAttributes.const_get(class_name)
+        else
+          cipher_class = EncryptedStrings.const_get(class_name)
+        end
+        
+        # Define encryption hooks
+        define_callbacks("before_encrypt_#{attr_name}", "after_encrypt_#{attr_name}")
+        send("before_encrypt_#{attr_name}", options.delete(:before)) if options.include?(:before)
+        send("after_encrypt_#{attr_name}", options.delete(:after)) if options.include?(:after)
+        
+        # Set the encrypted value on the configured callback
+        callback = options.delete(:on) || :before_validation
+        
+        # Create a callback method to execute on the callback event
+        send(callback, :if => options.delete(:if), :unless => options.delete(:unless)) do |record|
+          record.send(:write_encrypted_attribute, attr_name, to_attr_name, cipher_class, config || options)
+          true
+        end
+        
+        # Define virtual source attribute
+        if attr_name != to_attr_name && !column_names.include?(attr_name)
+          attr_reader attr_name unless method_defined?(attr_name)
+          attr_writer attr_name unless method_defined?("#{attr_name}=")
+        end
+        
+        # Define the reader when reading the encrypted attribute from the database
+        define_method(to_attr_name) do
+          read_encrypted_attribute(to_attr_name, cipher_class, config || options)
+        end
+        
+        unless included_modules.include?(EncryptedAttributes::InstanceMethods)
+          include EncryptedAttributes::InstanceMethods
+        end
       end
     end
   end

@@ -1,5 +1,7 @@
 == master
 
+* Allow multiple attributes to be encrypted in a single call
+
 == 0.4.0 / 2009-05-02
 
 * Replace dynamic :salt option with :embed_salt option and utilizing the #encrypts block 
