@@ -1,6 +1,16 @@
 module EncryptedAttributes
   # Adds support for embedding salts in the encrypted value
   class ShaCipher < EncryptedStrings::ShaCipher
+    # Tracks the lengths generated for each hashing algorithm
+    @@algorithm_lengths = {
+      'MD5' => 32,
+      'SHA1' => 40,
+      'SHA2' => 64,
+      'SHA256' => 64,
+      'SHA384' => 96,
+      'SHA512' => 128
+    }
+    
     # Encrypts a string using a Secure Hash Algorithm (SHA), specifically SHA-1.
     # 
     # Configuration options:
@@ -12,7 +22,8 @@ module EncryptedAttributes
     def initialize(value, options = {}) #:nodoc:
       if @embed_salt = options.delete(:embed_salt)
         # The salt is at the end of the value
-        salt = value[40..-1]
+        algorithm = (options[:algorithm] || EncryptedStrings::ShaCipher.default_algorithm).upcase
+        salt = value[@@algorithm_lengths[algorithm]..-1]
         options[:salt] = salt unless salt.blank?
       end
       

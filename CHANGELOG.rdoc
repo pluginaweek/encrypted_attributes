@@ -1,5 +1,6 @@
 == master
 
+* Add support for embedding the salt using the various SHA ciphers
 * Allow multiple attributes to be encrypted in a single call
 
 == 0.4.0 / 2009-05-02
