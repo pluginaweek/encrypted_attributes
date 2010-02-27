@@ -1,5 +1,6 @@
 == master
 
+* Release gems via rake-gemcutter instead of rubyforge
 * Allow an application-wide default be set for :embed_salt in SHA ciphers
 * Add support for embedding the salt using the various SHA ciphers
 * Allow multiple attributes to be encrypted in a single call
