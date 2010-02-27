@@ -14,6 +14,27 @@ class ShaCipherWithoutEmbeddingTest < Test::Unit::TestCase
   end
 end
 
+class ShaCipherWithCustomDefaultsTest < Test::Unit::TestCase
+  def setup
+    @original_default_embed_salt = EncryptedAttributes::ShaCipher.default_embed_salt
+    
+    EncryptedAttributes::ShaCipher.default_embed_salt = true
+    @cipher = EncryptedAttributes::ShaCipher.new('dc0fc7c07bba982a8d8f18fe138dbea912df5e0ecustom_salt')
+  end
+  
+  def test_should_use_remaining_characters_after_password_for_salt
+    assert_equal 'custom_salt', @cipher.salt
+  end
+  
+  def test_should_embed_salt_in_encrypted_string
+    assert_equal 'dc0fc7c07bba982a8d8f18fe138dbea912df5e0ecustom_salt', @cipher.encrypt('secret')
+  end
+  
+  def teardown
+    EncryptedAttributes::ShaCipher.default_embed_salt = @original_default_embed_salt
+  end
+end
+
 class ShaCipherWithNoSaltEmbeddedTest < Test::Unit::TestCase
   def setup
     @cipher = EncryptedAttributes::ShaCipher.new('dc0fc7c07bba982a8d8f18fe138dbea912df5e0e', :embed_salt => true, :salt => 'custom_salt')
