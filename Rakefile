@@ -6,7 +6,7 @@ require 'rake/gempackagetask'
 
 spec = Gem::Specification.new do |s|
   s.name              = 'encrypted_attributes'
-  s.version           = '0.4.0'
+  s.version           = '0.4.1'
   s.platform          = Gem::Platform::RUBY
   s.summary           = 'Adds support for automatically encrypting ActiveRecord attributes'
   s.description       = s.summary
@@ -15,7 +15,7 @@ spec = Gem::Specification.new do |s|
   s.require_path      = 'lib'
   s.has_rdoc          = true
   s.test_files        = Dir['test/**/*_test.rb']
-  s.add_dependency    'encrypted_strings', '>= 0.3.0'
+  s.add_dependency    'encrypted_strings', '>= 0.3.3'
   
   s.author            = 'Aaron Pfeifer'
   s.email             = 'aaron@pluginaweek.org'
