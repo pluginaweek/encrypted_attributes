@@ -7,7 +7,7 @@ attributes.
 
 API
 
-* http://api.pluginaweek.org/encrypted_attributes
+* http://rdoc.info/projects/pluginaweek/encrypted_attributes
 
 Bugs
 
