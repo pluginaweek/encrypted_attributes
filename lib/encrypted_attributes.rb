@@ -140,6 +140,14 @@ module EncryptedAttributes
           attr_writer attr_name unless method_defined?("#{attr_name}=")
         end
         
+        # Fix dirty checking when a single column is used
+        if attr_name == to_attr_name
+          define_method("#{to_attr_name}=") do |value|
+            write_attribute(to_attr_name, value)
+            send("#{to_attr_name}_will_change!")
+          end
+        end
+        
         # Define the reader when reading the encrypted attribute from the database
         define_method(to_attr_name) do
           read_encrypted_attribute(to_attr_name, cipher_class, config || options)

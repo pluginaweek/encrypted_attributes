@@ -54,6 +54,16 @@ class EncryptedAttributesTest < ActiveSupport::TestCase
     assert_equal '162cf5debf84cbc2af13da848544c3e2c515b4d3', "#{user.password}"
   end
   
+  def test_should_encrypt_attribute_if_updating_with_same_password
+    user = create_user(:login => 'admin', :password => 'secret')
+    user.password = 'secret'
+    user.save!
+    user.reload
+    assert user.password.encrypted?
+    assert_not_equal String.new(user.password), 'secret'
+    assert_equal '8152bc582f58c854f580cb101d3182813dec4afe', "#{user.password}"
+  end
+  
   def teardown
     User.class_eval do
       @before_validation_callbacks = nil
@@ -449,6 +459,22 @@ class ShaWithEmbeddedSaltEncryptionTest < ActiveSupport::TestCase
     assert_equal 'secret', @user.password
   end
   
+  def test_should_be_dirty_when_attr_is_accessed_then_set_to_same_value
+    # Access so that the cipher gets set, making equality work
+    @user.password
+    
+    @user.password = 'secret'
+    assert @user.password_changed?
+  end
+  
+  def test_should_not_be_encrypted_if_changed_until_saved
+    # Access so that the cipher gets set, making equality work
+    @user.password
+    
+    @user.password = 'secret'
+    3.times { assert !@user.password.encrypted? }
+  end
+  
   def teardown
     User.class_eval do
       @before_validation_callbacks = nil
@@ -480,6 +506,22 @@ class SymmetricEncryptionTest < ActiveSupport::TestCase
   
   def test_should_be_able_to_check_password
     assert_equal 'secret', @user.password
+  end
+  
+  def test_should_be_dirty_when_attr_is_accessed_then_set_to_same_value
+    # Access so that the cipher gets set, making equality work
+    @user.password
+    
+    @user.password = 'secret'
+    assert @user.password_changed?
+  end
+  
+  def test_should_not_be_encrypted_if_changed_until_saved
+    # Access so that the cipher gets set, making equality work
+    @user.password
+    
+    @user.password = 'secret'
+    3.times { assert !@user.password.encrypted? }
   end
   
   def teardown
