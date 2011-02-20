@@ -7,7 +7,7 @@ attributes.
 
 API
 
-* http://rdoc.info/projects/pluginaweek/encrypted_attributes
+* http://rdoc.info/github/pluginaweek/encrypted_attributes/master/frames
 
 Bugs
 
