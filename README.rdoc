@@ -11,7 +11,7 @@ API
 
 Bugs
 
-* http://pluginaweek.lighthouseapp.com/projects/13269-encrypted_attributes
+* http://github.com/pluginaweek/encrypted_attributes/issues
 
 Development
 
