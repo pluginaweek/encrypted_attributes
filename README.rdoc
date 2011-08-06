@@ -1,4 +1,4 @@
-= encrypted_attributes
+= encrypted_attributes http://travis-ci.org/pluginaweek/encrypted_attributes.png
 
 +encrypted_attributes+ adds support for automatically encrypting ActiveRecord
 attributes.
@@ -16,6 +16,10 @@ Bugs
 Development
 
 * http://github.com/pluginaweek/encrypted_attributes
+
+Testing
+
+* http://travis-ci.org/pluginaweek/encrypted_attributes
 
 Source
 
